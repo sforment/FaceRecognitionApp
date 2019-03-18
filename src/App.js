@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import Particles from "react-particles-js";
-import Clarifai from "clarifai";
 import Navigation from "./Components/Navigation/Navigation";
 import SignIn from "./Components/SignIn/SignIn";
 import Register from "./Components/Register/Register";
@@ -10,14 +9,10 @@ import Rank from "./Components/Rank/Rank";
 import FaceRecognition from "./Components/FaceRecognition/FaceRecognition";
 import "./App.css";
 
-const app = new Clarifai.App({
-	apiKey: "059124b11094422d9661fbb6fb9f5153"
-});
-
 const particleOptions = {
 	particles: {
 		number: {
-			value: 1,
+			value: 30,
 			density: {
 				enable: true,
 				value_area: 800
@@ -25,6 +20,21 @@ const particleOptions = {
 		}
 	}
 };
+
+const initialState = {
+	input: "",
+	imageUrl: "",
+	box: {},
+	route: "signin",
+	isSignedIn: false,
+	user: {
+		id: '',
+		name: '',
+		email: '',
+		entries: 0,
+		joined: ''
+	}
+}
 
 class App extends Component {
 	constructor() {
@@ -55,11 +65,6 @@ class App extends Component {
 		}})
 	}
 
-	componentDidMount() {
-		fetch('http://localhost:3000')
-		.then(response => response.json())
-	}
-
 	calcFaceLocation = data => {
 		const clarifaiFace =
 			data.outputs[0].data.regions[0].region_info.bounding_box;
@@ -84,8 +89,14 @@ class App extends Component {
 
 	onButtonSubmit = event => {
 		this.setState({ imageUrl: this.state.input });
-		app.models
-			.predict(Clarifai.FACE_DETECT_MODEL, this.state.input)
+			fetch('http://localhost:3000/imageurl', {
+				method: 'post',
+				headers: {'Content-Type': 'application/json'},
+				body: JSON.stringify({
+					input: this.state.input
+				})
+			})
+			.then(response => response.json())
 			.then(response => {
 				if (response) {
 					fetch('http://localhost:3000/image', {
@@ -99,6 +110,7 @@ class App extends Component {
 						.then(count => {
 							this.setState(Object.assign(this.state.user, {entries: count}))
 						})
+						.catch(console.log)
 				}
 				this.displayFaceBox(this.calcFaceLocation(response))
 			})
@@ -106,8 +118,8 @@ class App extends Component {
 	};
 
 	onRouteChange = (route) => {
-		if (route === 'signout') {
-			this.setState({isSignedIn: false})
+		if (route === 'signin') {
+			this.setState(initialState)
 		} else if (route === 'home') {
 			this.setState({isSignedIn: true})
 		}
