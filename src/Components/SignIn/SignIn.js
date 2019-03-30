@@ -18,7 +18,7 @@ class SignIn extends React.Component {
 	}
 
 	onSumbitSignIn = () => {
-		fetch('https://protected-sea-73806.herokuapp.com//signin', {
+		fetch('https://protected-sea-73806.herokuapp.com/signin', {
 			method: 'post',
 			headers: {'Content-Type': 'application/json'},
 			body: JSON.stringify({
